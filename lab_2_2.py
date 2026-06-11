@@ -1,7 +1,7 @@
-"""Модуль для интерактивного чата с языковой моделью.
+"""Модуль для проверки работы модели с использованием Chain of Thought.
 
-Загружает переменные окружения из файла .env, инициализирует клиент OpenAI
-и предоставляет цикл для общения с моделью с сохранением истории сообщений.
+Загружает переменные окружения, инициализирует клиент OpenAI и
+демонстрирует пошаговое рассуждение модели на логических задачах.
 """
 
 import logging
@@ -48,7 +48,7 @@ def get_api_config() -> tuple[str, str, str]:
     base_url = os.environ.get("BASE_URL")
     model_name = os.environ.get("MODEL_NAME")
 
-    if not all([api_key, base_url, model_name]):
+    if not all((api_key, base_url, model_name)):
         raise ValueError(
             "Не все обязательные переменные окружения заданы. "
             "Проверьте файл .env"
@@ -74,6 +74,7 @@ def generate_answer(
         Ответ модели, очищенный от пробелов по краям.
 
     Raises:
+        ValueError: Если модель вернула пустой ответ.
         openai.OpenAIError: При ошибке обращения к API.
     """
     response = client.chat.completions.create(
@@ -88,8 +89,31 @@ def generate_answer(
     return response.choices[0].message.content.strip()
 
 
+SYSTEM_PROMPT = (
+    "Ты — логический помощник. Перед тем как дать ответ, ты должен подробно "
+    "рассуждать шаг за шагом. Строго придерживайся следующего формата вывода:\n"
+    "Шаг 1: <первое логическое рассуждение>\n"
+    "Шаг 2: <второе рассуждение>\n"
+    "...\n"
+    "Ответ: <финальный ответ кратко>\n\n"
+    "Не добавляй никаких лишних слов, не отклоняйся от формата. Каждый шаг "
+    "должен быть на новой строке, начинаться со слова 'Шаг N:' и содержать "
+    "пояснение. В конце обязательно напиши 'Ответ:' и сам ответ."
+)
+
+TASKS: list[str] = [
+    "У Маши было 5 яблок. Она отдала 2 яблока Пете, а потом нашла ещё 3. "
+    "Сколько яблок у Маши теперь?",
+    "Если все люди смертны, а Сократ — человек, то смертен ли Сократ?",
+    "В магазине скидка 20% на товар стоимостью 1500 рублей. "
+    "Сколько будет стоить товар со скидкой?",
+    "У вас есть 3-литровое ведро и 5-литровое ведро. "
+    "Как с их помощью отмерить ровно 4 литра воды?",
+]
+
+
 def main() -> None:
-    """Основная функция для запуска интерактивного чата."""
+    """Основная функция для проверки работы модели на логических задачах."""
     logging.basicConfig(
         level=logging.INFO,
         format="%(asctime)s - %(levelname)s - %(name)s - %(message)s",
@@ -100,35 +124,29 @@ def main() -> None:
     api_key, base_url, model_name = get_api_config()
     client = OpenAI(api_key=api_key, base_url=base_url)
 
-    system_prompt = (
-        "Ты — полезный, дружелюбный и честный чат-бот. Отвечай кратко и по делу. "
-        "Если не знаешь ответа — так и скажи. Не пиши ничего опасного, незаконного "
-        "или оскорбительного. Не выдавай себя за человека. Всегда общайся на русском языке."
-    )
-
-    messages: list[dict[str, str]] = [{"role": "system", "content": system_prompt}]
-
-    cnt = 5
-    while cnt > 0:
-        user_input = input("> ")
-        messages.append({"role": "user", "content": user_input})
-
+    for task_number, task in enumerate(TASKS, 1):
         try:
-            assistant_answer = generate_answer(
+            answer = generate_answer(
                 client=client,
                 model_name=model_name,
-                system_prompt=system_prompt,
-                user_prompt=user_input,
+                system_prompt=SYSTEM_PROMPT,
+                user_prompt=task,
             )
         except Exception as e:
-            logger.error("Ошибка при генерации ответа: %s", e)
+            logger.error("Ошибка при обработке задачи %d: %s", task_number, e)
             continue
 
-        logger.info("Ответ модели: %s", assistant_answer)
-        print(f"\n{assistant_answer}\n")
+        logger.info(
+            "Задача %d: вопрос='%s', ответ модели:\n%s",
+            task_number,
+            task,
+            answer,
+        )
 
-        messages.append({"role": "assistant", "content": assistant_answer})
-        cnt -= 1
+        print(f"\n--- Задача {task_number} ---")
+        print(f"Вопрос: {task}")
+        print(f"Ответ модели:\n{answer}")
+        print("-" * 40)
 
 
 if __name__ == "__main__":
