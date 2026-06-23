@@ -1,0 +1,11 @@
+# Основные зависимости для всех лабораторных работ проекта
+openai>=1.0.0
+pydantic>=2.0.0
+
+# Зависимости для LangGraph-агентов (lab_4_2, lab_4_6)
+langchain-openai>=0.2.0
+langgraph>=0.2.0
+langchain-core>=0.3.0
+
+# Опциональная зависимость для lab_4_4 (Вариант A: smolagents)
+smolagents>=0.1.0
