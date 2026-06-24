@@ -53,6 +53,9 @@ Project8/
 ├── lab_3_1.py        # Извлечение контактных данных
 ├── lab_3_2.py        # Классификация обращений в поддержку
 ├── lab_3_3.py        # Анализ вакансии и матчинг с резюме
+├── lab_4_2.py        # ReAct-агент консультанта магазина (LangGraph)
+├── lab_4_4.py        # Function Calling (smolagents + Structured Output)
+├── lab_4_6.py        # Архитектуры агентов на LangGraph (4 варианта)
 ├── .env              # Переменные окружения (API_KEY, BASE_URL, MODEL_NAME)
 └── README.md         # Этот файл
 ```
@@ -60,21 +63,21 @@ Project8/
 ## 🚀 Запуск
 
 1. Установите зависимости:
-   ```bash
-   pip install openai pydantic
-   ```
+    ```bash
+    pip install -r requirements.txt
+    ```
 
 2. Создайте файл `.env` с переменными:
-   ```
-   API_KEY=your_api_key
-   BASE_URL=https://api.openai.com/v1
-   MODEL_NAME=gpt-4o-mini
-   ```
+    ```
+    API_KEY=your_api_key
+    BASE_URL=https://api.openai.com/v1
+    MODEL_NAME=gpt-4o-mini
+    ```
 
 3. Запустите нужный лабораторный файл:
-   ```bash
-   python lab_3_1.py
-   ```
+    ```bash
+    python lab_4_2.py
+    ```
 
 ## 📝 Лицензия
 
